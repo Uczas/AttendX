@@ -2,7 +2,7 @@
     "name": "AttendX",
     "short_name": "AttendX",
     "description": "Student Attendance Tracking App",
-    "start_url": ".",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#4f46e5",
     "theme_color": "#4f46e5",
