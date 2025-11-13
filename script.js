@@ -121,19 +121,21 @@ class AttendX {
         });
     }
 
-    // Search Methods
+    // Search Methods - FIXED VERSION
     handleDashboardSearch(searchTerm) {
+        console.log('Dashboard search:', searchTerm); // Debug log
         clearTimeout(this.searchTimeout);
         this.searchTimeout = setTimeout(() => {
             this.filterDashboardStudents(searchTerm);
-        }, 300); // 300ms debounce
+        }, 300);
     }
 
     handleAttendanceSearch(searchTerm) {
+        console.log('Attendance search:', searchTerm); // Debug log
         clearTimeout(this.searchTimeout);
         this.searchTimeout = setTimeout(() => {
             this.filterAttendanceStudents(searchTerm);
-        }, 300); // 300ms debounce
+        }, 300);
     }
 
     filterDashboardStudents(searchTerm) {
@@ -141,6 +143,8 @@ class AttendX {
         const studentCards = studentsList.querySelectorAll('.student-card');
         const clearBtn = document.getElementById('clearDashboardSearch');
         const emptyState = document.getElementById('emptyState');
+        
+        console.log('Found student cards:', studentCards.length); // Debug log
         
         // Show/hide clear button
         clearBtn.style.display = searchTerm ? 'block' : 'none';
@@ -151,6 +155,7 @@ class AttendX {
         }
         
         if (!searchTerm.trim()) {
+            console.log('Clearing search - showing all students');
             // Show all students if search is empty
             studentCards.forEach(card => {
                 card.style.display = 'flex';
@@ -165,20 +170,32 @@ class AttendX {
 
         const searchLower = searchTerm.toLowerCase();
         let hasResults = false;
+        let matchCount = 0;
 
         studentCards.forEach(card => {
-            const studentName = card.querySelector('.student-name').textContent.toLowerCase();
+            const studentNameElement = card.querySelector('.student-name');
+            if (!studentNameElement) {
+                console.log('No student name element found in card'); // Debug log
+                return;
+            }
+            
+            const studentName = studentNameElement.textContent.toLowerCase();
             const matches = studentName.includes(searchLower);
+            
+            console.log(`Student: ${studentName}, Search: ${searchLower}, Matches: ${matches}`); // Debug log
             
             card.style.display = matches ? 'flex' : 'none';
             
             if (matches) {
                 card.classList.add('highlight');
                 hasResults = true;
+                matchCount++;
             } else {
                 card.classList.remove('highlight');
             }
         });
+
+        console.log(`Search completed. Matches: ${matchCount}, Has results: ${hasResults}`); // Debug log
 
         // Show no results message if needed
         this.showNoResultsMessage(studentsList, hasResults, searchTerm, 'dashboard');
@@ -189,10 +206,13 @@ class AttendX {
         const attendanceItems = attendanceList.querySelectorAll('.attendance-item');
         const clearBtn = document.getElementById('clearAttendanceSearch');
         
+        console.log('Found attendance items:', attendanceItems.length); // Debug log
+        
         // Show/hide clear button
         clearBtn.style.display = searchTerm ? 'block' : 'none';
         
         if (!searchTerm.trim()) {
+            console.log('Clearing attendance search - showing all items');
             // Show all students if search is empty
             attendanceItems.forEach(item => {
                 item.style.display = 'flex';
@@ -203,20 +223,32 @@ class AttendX {
 
         const searchLower = searchTerm.toLowerCase();
         let hasResults = false;
+        let matchCount = 0;
 
         attendanceItems.forEach(item => {
-            const studentName = item.querySelector('label').textContent.toLowerCase();
+            const labelElement = item.querySelector('label');
+            if (!labelElement) {
+                console.log('No label element found in attendance item'); // Debug log
+                return;
+            }
+            
+            const studentName = labelElement.textContent.toLowerCase();
             const matches = studentName.includes(searchLower);
+            
+            console.log(`Attendance Student: ${studentName}, Search: ${searchLower}, Matches: ${matches}`); // Debug log
             
             item.style.display = matches ? 'flex' : 'none';
             
             if (matches) {
                 item.classList.add('highlight');
                 hasResults = true;
+                matchCount++;
             } else {
                 item.classList.remove('highlight');
             }
         });
+
+        console.log(`Attendance search completed. Matches: ${matchCount}, Has results: ${hasResults}`); // Debug log
 
         // Show no results message if needed
         this.showNoResultsMessage(attendanceList, hasResults, searchTerm, 'attendance');
@@ -231,6 +263,7 @@ class AttendX {
 
         // Add no results message if no matches found
         if (!hasResults && searchTerm.trim()) {
+            console.log('Showing no results message'); // Debug log
             const noResults = document.createElement('div');
             noResults.className = 'no-results';
             noResults.innerHTML = `
@@ -239,10 +272,13 @@ class AttendX {
                 <p class="suggestion">Try checking spelling or using different keywords</p>
             `;
             container.appendChild(noResults);
+        } else {
+            console.log('Not showing no results message - has results or empty search'); // Debug log
         }
     }
 
     clearDashboardSearch() {
+        console.log('Clearing dashboard search'); // Debug log
         const searchInput = document.getElementById('dashboardSearch');
         searchInput.value = '';
         this.filterDashboardStudents('');
@@ -250,6 +286,7 @@ class AttendX {
     }
 
     clearAttendanceSearch() {
+        console.log('Clearing attendance search'); // Debug log
         const searchInput = document.getElementById('attendanceSearch');
         searchInput.value = '';
         this.filterAttendanceStudents('');
@@ -353,6 +390,12 @@ class AttendX {
             `;
             studentsList.appendChild(studentCard);
         });
+
+        // After loading students, if there's a search term, apply it
+        const searchInput = document.getElementById('dashboardSearch');
+        if (searchInput.value.trim()) {
+            this.filterDashboardStudents(searchInput.value);
+        }
     }
 
     getStudentsAlphabetically(students) {
