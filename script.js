@@ -4,41 +4,42 @@ class AttendX {
         this.settings = this.loadFromStorage('settings') || { theme: 'auto' };
         this.currentCourse = this.loadFromStorage('currentCourse') || 'default';
         
-	this.deferredPrompt = null;
+        this.deferredPrompt = null;
+        this.searchTimeout = null; // Add this for search debouncing
 
         this.initializeApp();
         this.bindEvents();
         this.loadCurrentCourse();
         this.applyTheme();
-	this.initializePWA();
+        this.initializePWA();
     }
 
- 	initializePWA() {
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-        console.log('App is already installed');
-        return;
+    initializePWA() {
+        // Check if app is already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('App is already installed');
+            return;
+        }
+
+        // Listen for the beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt event fired');
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            this.deferredPrompt = e;
+            // Show install prompt after a short delay
+            setTimeout(() => this.showInstallPrompt(), 3000);
+        });
+
+        // Listen for app installed event
+        window.addEventListener('appinstalled', (e) => {
+            console.log('App was successfully installed!');
+            this.deferredPrompt = null;
+        });
     }
 
-    // Listen for the beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('beforeinstallprompt event fired');
-        // Prevent the mini-infobar from appearing on mobile
-        e.preventDefault();
-        // Stash the event so it can be triggered later
-        this.deferredPrompt = e;
-        // Show install prompt after a short delay
-        setTimeout(() => this.showInstallPrompt(), 3000);
-    });
-
-    // Listen for app installed event
-    window.addEventListener('appinstalled', (e) => {
-        console.log('App was successfully installed!');
-        this.deferredPrompt = null;
-    });
-}
-
- showInstallPrompt() {
+    showInstallPrompt() {
         if (this.deferredPrompt) {
             // Show the native install prompt
             this.deferredPrompt.prompt();
@@ -54,7 +55,6 @@ class AttendX {
             });
         }
     }
-
 
     initializeApp() {
         this.renderCoursesList();
@@ -94,6 +94,23 @@ class AttendX {
         // Empty state
         document.getElementById('addFirstStudent').addEventListener('click', () => this.openUpdateModal());
         
+        // Search functionality
+        document.getElementById('dashboardSearch').addEventListener('input', (e) => {
+            this.handleDashboardSearch(e.target.value);
+        });
+        
+        document.getElementById('attendanceSearch').addEventListener('input', (e) => {
+            this.handleAttendanceSearch(e.target.value);
+        });
+        
+        document.getElementById('clearDashboardSearch').addEventListener('click', () => {
+            this.clearDashboardSearch();
+        });
+        
+        document.getElementById('clearAttendanceSearch').addEventListener('click', () => {
+            this.clearAttendanceSearch();
+        });
+        
         // Close modals on backdrop click
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -102,6 +119,141 @@ class AttendX {
                 }
             });
         });
+    }
+
+    // Search Methods
+    handleDashboardSearch(searchTerm) {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            this.filterDashboardStudents(searchTerm);
+        }, 300); // 300ms debounce
+    }
+
+    handleAttendanceSearch(searchTerm) {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            this.filterAttendanceStudents(searchTerm);
+        }, 300); // 300ms debounce
+    }
+
+    filterDashboardStudents(searchTerm) {
+        const studentsList = document.getElementById('studentsList');
+        const studentCards = studentsList.querySelectorAll('.student-card');
+        const clearBtn = document.getElementById('clearDashboardSearch');
+        const emptyState = document.getElementById('emptyState');
+        
+        // Show/hide clear button
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+        
+        // If empty state is visible and we're searching, hide it
+        if (searchTerm && emptyState.style.display === 'block') {
+            emptyState.style.display = 'none';
+        }
+        
+        if (!searchTerm.trim()) {
+            // Show all students if search is empty
+            studentCards.forEach(card => {
+                card.style.display = 'flex';
+                card.classList.remove('highlight');
+            });
+            // Restore empty state if no students
+            if (studentCards.length === 0) {
+                emptyState.style.display = 'block';
+            }
+            return;
+        }
+
+        const searchLower = searchTerm.toLowerCase();
+        let hasResults = false;
+
+        studentCards.forEach(card => {
+            const studentName = card.querySelector('.student-name').textContent.toLowerCase();
+            const matches = studentName.includes(searchLower);
+            
+            card.style.display = matches ? 'flex' : 'none';
+            
+            if (matches) {
+                card.classList.add('highlight');
+                hasResults = true;
+            } else {
+                card.classList.remove('highlight');
+            }
+        });
+
+        // Show no results message if needed
+        this.showNoResultsMessage(studentsList, hasResults, searchTerm, 'dashboard');
+    }
+
+    filterAttendanceStudents(searchTerm) {
+        const attendanceList = document.getElementById('attendanceList');
+        const attendanceItems = attendanceList.querySelectorAll('.attendance-item');
+        const clearBtn = document.getElementById('clearAttendanceSearch');
+        
+        // Show/hide clear button
+        clearBtn.style.display = searchTerm ? 'block' : 'none';
+        
+        if (!searchTerm.trim()) {
+            // Show all students if search is empty
+            attendanceItems.forEach(item => {
+                item.style.display = 'flex';
+                item.classList.remove('highlight');
+            });
+            return;
+        }
+
+        const searchLower = searchTerm.toLowerCase();
+        let hasResults = false;
+
+        attendanceItems.forEach(item => {
+            const studentName = item.querySelector('label').textContent.toLowerCase();
+            const matches = studentName.includes(searchLower);
+            
+            item.style.display = matches ? 'flex' : 'none';
+            
+            if (matches) {
+                item.classList.add('highlight');
+                hasResults = true;
+            } else {
+                item.classList.remove('highlight');
+            }
+        });
+
+        // Show no results message if needed
+        this.showNoResultsMessage(attendanceList, hasResults, searchTerm, 'attendance');
+    }
+
+    showNoResultsMessage(container, hasResults, searchTerm, type) {
+        // Remove existing no results message
+        const existingMessage = container.querySelector('.no-results');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        // Add no results message if no matches found
+        if (!hasResults && searchTerm.trim()) {
+            const noResults = document.createElement('div');
+            noResults.className = 'no-results';
+            noResults.innerHTML = `
+                <i class="fas fa-search"></i>
+                <p>No students found for "<strong>${searchTerm}</strong>"</p>
+                <p class="suggestion">Try checking spelling or using different keywords</p>
+            `;
+            container.appendChild(noResults);
+        }
+    }
+
+    clearDashboardSearch() {
+        const searchInput = document.getElementById('dashboardSearch');
+        searchInput.value = '';
+        this.filterDashboardStudents('');
+        document.getElementById('clearDashboardSearch').style.display = 'none';
+    }
+
+    clearAttendanceSearch() {
+        const searchInput = document.getElementById('attendanceSearch');
+        searchInput.value = '';
+        this.filterAttendanceStudents('');
+        document.getElementById('clearAttendanceSearch').style.display = 'none';
     }
 
     toggleNav() {
@@ -130,6 +282,8 @@ class AttendX {
         this.updateCourseTitle();
         this.showDeleteButton();
         this.toggleNav();
+        // Clear search when switching courses
+        this.clearDashboardSearch();
     }
 
     updateCourseTitle() {
@@ -229,9 +383,11 @@ class AttendX {
         // Set today's date as default
         document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
         
-        // Clear previous content
+        // Clear previous content and search
         attendanceList.innerHTML = '';
         studentsToRemove.innerHTML = '';
+        document.getElementById('attendanceSearch').value = ''; // Clear search
+        document.getElementById('clearAttendanceSearch').style.display = 'none'; // Hide clear button
         
         const course = this.courses[this.currentCourse];
         const students = course.students;
