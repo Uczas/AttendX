@@ -4,11 +4,57 @@ class AttendX {
         this.settings = this.loadFromStorage('settings') || { theme: 'auto' };
         this.currentCourse = this.loadFromStorage('currentCourse') || 'default';
         
+	this.deferredPrompt = null;
+
         this.initializeApp();
         this.bindEvents();
         this.loadCurrentCourse();
         this.applyTheme();
+	this.initializePWA();
     }
+
+ 	initializePWA() {
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('App is already installed');
+        return;
+    }
+
+    // Listen for the beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('beforeinstallprompt event fired');
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        this.deferredPrompt = e;
+        // Show install prompt after a short delay
+        setTimeout(() => this.showInstallPrompt(), 3000);
+    });
+
+    // Listen for app installed event
+    window.addEventListener('appinstalled', (e) => {
+        console.log('App was successfully installed!');
+        this.deferredPrompt = null;
+    });
+}
+
+ showInstallPrompt() {
+        if (this.deferredPrompt) {
+            // Show the native install prompt
+            this.deferredPrompt.prompt();
+            
+            // Wait for the user to respond to the prompt
+            this.deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+                this.deferredPrompt = null;
+            });
+        }
+    }
+
 
     initializeApp() {
         this.renderCoursesList();
