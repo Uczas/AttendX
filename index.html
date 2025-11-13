@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendX</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <button class="menu-btn" id="menuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="course-title" id="courseTitle">Select Course</h1>
+            <div class="header-actions">
+                <button class="icon-btn" id="exportBtn" title="Export CSV">
+                    <i class="fas fa-file-csv"></i>
+                </button>
+                <button class="icon-btn" id="updateBtn" title="Update Attendance">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="students-list" id="studentsList">
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-users"></i>
+                    <p>No students added yet</p>
+                    <button class="btn-primary" id="addFirstStudent">Add Students</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Side Navigation -->
+        <nav class="side-nav" id="sideNav">
+            <div class="nav-header">
+                <h2>AttendX</h2>
+                <button class="close-btn" id="closeNav">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="nav-content">
+                <h3>Courses</h3>
+                <ul class="courses-list" id="coursesList">
+                    <li class="course-item" data-course="default">
+                        <span>Select a course</span>
+                    </li>
+                </ul>
+                <button class="btn-secondary" id="addCourseBtn">
+                    <i class="fas fa-plus"></i> Add New Course
+                </button>
+
+		<button class="btn-danger" id="deleteCourseBtn" style="display: none;">
+    		<i class="fas fa-trash"></i> Delete Current Course
+		</button>
+
+            </div>
+        </nav>
+
+        <!-- Update Attendance Modal -->
+        <div class="modal" id="updateModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Update Attendance</h3>
+                    <button class="close-btn" id="closeUpdateModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="attendance-date">
+                        <label for="attendanceDate">Date:</label>
+                        <input type="date" id="attendanceDate">
+                    </div>
+                    <div class="attendance-list" id="attendanceList"></div>
+                    <div class="student-management">
+                        <h4>Manage Students</h4>
+                        <div class="add-student">
+                            <input type="text" id="newStudentName" placeholder="Enter student name">
+                            <button class="btn-primary" id="addStudentBtn">Add Student</button>
+                        </div>
+                        <div class="students-to-remove" id="studentsToRemove"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="cancelUpdate">Cancel</button>
+                    <button class="btn-primary" id="saveAttendance">Save Attendance</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Settings</h3>
+                    <button class="close-btn" id="closeSettingsModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="setting-item">
+                        <label for="themeSelect">Theme:</label>
+                        <select id="themeSelect">
+                            <option value="light">Light Mode</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-primary" id="saveSettings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Course Modal -->
+        <div class="modal" id="addCourseModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add New Course</h3>
+                    <button class="close-btn" id="closeCourseModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="courseName">Course Name:</label>
+                        <input type="text" id="courseName" placeholder="Enter course name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="cancelCourse">Cancel</button>
+                    <button class="btn-primary" id="saveCourse">Save Course</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

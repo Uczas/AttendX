@@ -1,0 +1,390 @@
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --background: #ffffff;
+    --surface: #f8fafc;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] {
+    --background: #1e293b;
+    --surface: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --border: #475569;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.app-container {
+    min-height: 100vh;
+    background-color: var(--background);
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.menu-btn, .icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+}
+
+.menu-btn:hover, .icon-btn:hover {
+    background-color: var(--border);
+}
+
+.course-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Main Content */
+.main-content {
+    padding: 1rem;
+}
+
+.students-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.student-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--surface);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.progress-circle {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-right: 1rem;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 3;
+}
+
+.circle-progress {
+    fill: none;
+    stroke: var(--success);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dasharray 0.3s;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.student-info {
+    flex: 1;
+}
+
+.student-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.student-details {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Side Navigation */
+.side-nav {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100vh;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    transition: left 0.3s;
+    z-index: 1000;
+}
+
+.side-nav.active {
+    left: 0;
+}
+
+.nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-content {
+    padding: 1rem;
+}
+
+.courses-list {
+    list-style: none;
+    margin-bottom: 1rem;
+}
+
+.course-item {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 0.5rem;
+}
+
+.course-item:hover {
+    background-color: var(--border);
+}
+
+.course-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: var(--border);
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--surface);
+    border-radius: 0.75rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background-color: var(--background);
+    color: var(--text-primary);
+}
+
+.attendance-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.attendance-item:last-child {
+    border-bottom: none;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header {
+        padding: 0.75rem;
+    }
+    
+    .course-title {
+        font-size: 1.1rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+}
+
+/* Checkbox */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.remove-student {
+    color: var(--error);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.remove-student:hover {
+    background-color: var(--error);
+    color: white;
+}
+
+.btn-danger {
+    background-color: var(--error);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+
+.confirmation-dialog {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.confirmation-dialog p {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
