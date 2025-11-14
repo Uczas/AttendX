@@ -208,12 +208,16 @@ class AttendX {
     switchCourse(courseId) {
         this.currentCourse = courseId;
         this.saveToStorage('currentCourse', courseId);
-        this.loadCurrentCourse();
+        
+        // Update UI immediately before refresh
         this.updateCourseTitle();
         this.showDeleteButton();
         this.toggleNav();
-        // Refresh the page when switching courses
-        window.location.reload();
+        
+        // Use a small timeout to ensure UI updates are visible before refresh
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
     }
 
     updateCourseTitle() {
@@ -601,19 +605,21 @@ class AttendX {
             // Switch to another course or default
             const remainingCourses = Object.keys(this.courses);
             if (remainingCourses.length > 0) {
-                this.switchCourse(remainingCourses[0]);
+                // Switch to first available course and refresh
+                this.currentCourse = remainingCourses[0];
+                this.saveToStorage('currentCourse', this.currentCourse);
             } else {
+                // No courses left, set to default
                 this.currentCourse = 'default';
                 this.saveToStorage('currentCourse', 'default');
-                this.loadCurrentCourse();
-                this.updateCourseTitle();
             }
             
-            this.renderCoursesList();
-            this.showDeleteButton();
-            this.toggleNav(); // Close the side menu
-            // Refresh the page after deleting course
+            // Always refresh the page after deletion
             window.location.reload();
+            
+            // Note: We don't need to call renderCoursesList() or showDeleteButton() here
+            // because the page will refresh and the app will reinitialize
+            this.toggleNav(); // Close the side menu
         }
     }
 
