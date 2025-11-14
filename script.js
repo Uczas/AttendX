@@ -94,17 +94,9 @@ class AttendX {
         // Empty state
         document.getElementById('addFirstStudent').addEventListener('click', () => this.openUpdateModal());
         
-        // Search functionality
-        document.getElementById('dashboardSearch').addEventListener('input', (e) => {
-            this.handleDashboardSearch(e.target.value);
-        });
-        
+        // Search functionality (only for attendance modal)
         document.getElementById('attendanceSearch').addEventListener('input', (e) => {
             this.handleAttendanceSearch(e.target.value);
-        });
-        
-        document.getElementById('clearDashboardSearch').addEventListener('click', () => {
-            this.clearDashboardSearch();
         });
         
         document.getElementById('clearAttendanceSearch').addEventListener('click', () => {
@@ -121,67 +113,12 @@ class AttendX {
         });
     }
 
-    // Search Methods
-    handleDashboardSearch(searchTerm) {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => {
-            this.filterDashboardStudents(searchTerm);
-        }, 300); // 300ms debounce
-    }
-
+    // Search Methods (only for attendance modal)
     handleAttendanceSearch(searchTerm) {
         clearTimeout(this.searchTimeout);
         this.searchTimeout = setTimeout(() => {
             this.filterAttendanceStudents(searchTerm);
         }, 300); // 300ms debounce
-    }
-
-    filterDashboardStudents(searchTerm) {
-        const studentsList = document.getElementById('studentsList');
-        const studentCards = studentsList.querySelectorAll('.student-card');
-        const clearBtn = document.getElementById('clearDashboardSearch');
-        const emptyState = document.getElementById('emptyState');
-        
-        // Show/hide clear button
-        clearBtn.style.display = searchTerm ? 'block' : 'none';
-        
-        // If empty state is visible and we're searching, hide it
-        if (searchTerm && emptyState.style.display === 'block') {
-            emptyState.style.display = 'none';
-        }
-        
-        if (!searchTerm.trim()) {
-            // Show all students if search is empty
-            studentCards.forEach(card => {
-                card.style.display = 'flex';
-                card.classList.remove('highlight');
-            });
-            // Restore empty state if no students
-            if (studentCards.length === 0) {
-                emptyState.style.display = 'block';
-            }
-            return;
-        }
-
-        const searchLower = searchTerm.toLowerCase();
-        let hasResults = false;
-
-        studentCards.forEach(card => {
-            const studentName = card.querySelector('.student-name').textContent.toLowerCase();
-            const matches = studentName.includes(searchLower);
-            
-            card.style.display = matches ? 'flex' : 'none';
-            
-            if (matches) {
-                card.classList.add('highlight');
-                hasResults = true;
-            } else {
-                card.classList.remove('highlight');
-            }
-        });
-
-        // Show no results message if needed
-        this.showNoResultsMessage(studentsList, hasResults, searchTerm, 'dashboard');
     }
 
     filterAttendanceStudents(searchTerm) {
@@ -242,13 +179,6 @@ class AttendX {
         }
     }
 
-    clearDashboardSearch() {
-        const searchInput = document.getElementById('dashboardSearch');
-        searchInput.value = '';
-        this.filterDashboardStudents('');
-        document.getElementById('clearDashboardSearch').style.display = 'none';
-    }
-
     clearAttendanceSearch() {
         const searchInput = document.getElementById('attendanceSearch');
         searchInput.value = '';
@@ -282,8 +212,8 @@ class AttendX {
         this.updateCourseTitle();
         this.showDeleteButton();
         this.toggleNav();
-        // Clear search when switching courses
-        this.clearDashboardSearch();
+        // Refresh the page when switching courses
+        window.location.reload();
     }
 
     updateCourseTitle() {
@@ -524,8 +454,9 @@ class AttendX {
         });
 
         this.saveToStorage('courses', this.courses);
-        this.loadCurrentCourse(); // FIXED: Refresh the dashboard
         this.closeUpdateModal();
+        // Refresh the page after saving attendance
+        window.location.reload();
     }
 
     exportCSV() {
@@ -681,6 +612,8 @@ class AttendX {
             this.renderCoursesList();
             this.showDeleteButton();
             this.toggleNav(); // Close the side menu
+            // Refresh the page after deleting course
+            window.location.reload();
         }
     }
 
