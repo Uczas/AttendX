@@ -865,14 +865,25 @@ class AttendX {
             const studentCard = document.createElement('div');
             studentCard.className = 'student-card';
             
+            // Calculate present/absent counts
+            const totalRecords = Object.keys(student.attendance).length;
+            const presentCount = Object.values(student.attendance).filter(value => value === true).length;
+            const absentCount = totalRecords - presentCount;
+            
             let historyHTML = '';
-            if (showHistory && Object.keys(student.attendance).length > 0) {
+            if (showHistory && totalRecords > 0) {
                 const sortedDates = Object.keys(student.attendance).sort().slice(-5);
                 historyHTML = `
                     <div class="student-stats">
-                        <span><i class="fas fa-calendar-check"></i> ${Object.values(student.attendance).filter(Boolean).length} present</span>
-                        <span><i class="fas fa-calendar-times"></i> ${Object.values(student.attendance).filter(v => !v).length} absent</span>
-                        <span><i class="fas fa-clock"></i> ${Object.keys(student.attendance).length} total</span>
+                        <span><i class="fas fa-calendar-check"></i> ${presentCount} present</span>
+                        <span><i class="fas fa-calendar-times"></i> ${absentCount} absent</span>
+                        <span><i class="fas fa-clock"></i> ${totalRecords} total</span>
+                    </div>
+                `;
+            } else if (showHistory && totalRecords === 0) {
+                historyHTML = `
+                    <div class="student-stats">
+                        <span style="color: var(--text-secondary);">No attendance records yet</span>
                     </div>
                 `;
             }
@@ -1078,6 +1089,7 @@ class AttendX {
             return;
         }
 
+        // Get all unique dates from ALL students
         const allDates = new Set();
         Object.values(students).forEach(student => {
             Object.keys(student.attendance).forEach(date => {
@@ -1086,20 +1098,40 @@ class AttendX {
         });
         const sortedDates = Array.from(allDates).sort();
 
+        // If no dates exist at all, show a message
+        if (sortedDates.length === 0) {
+            this.showToast('No attendance records to export.', 'info');
+            return;
+        }
+
         let csv = 'Student Name,' + sortedDates.join(',') + ',Attendance Rate\n';
         
         const sortedStudents = this.getStudentsAlphabetically(students);
         
         sortedStudents.forEach(([studentId, student]) => {
             const row = [student.name];
+            
+            // For each date, check if student has a record
             sortedDates.forEach(date => {
-                row.push(student.attendance[date] ? 'Present' : 'Absent');
+                if (student.attendance[date] !== undefined) {
+                    // Student has a record for this date
+                    row.push(student.attendance[date] ? 'Present' : 'Absent');
+                } else {
+                    // Student was added later - mark as Absent for past dates
+                    row.push('Absent');
+                }
             });
-            const rate = this.calculateAttendanceRate(student.attendance);
+            
+            // Calculate rate based on ACTUAL records only (not counting absent as records)
+            const totalRecords = Object.keys(student.attendance).length;
+            const presentRecords = Object.values(student.attendance).filter(value => value === true).length;
+            const rate = totalRecords === 0 ? 0 : Math.round((presentRecords / totalRecords) * 100);
             row.push(rate + '%');
+            
             csv += row.join(',') + '\n';
         });
 
+        // Create and download file
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1152,8 +1184,12 @@ class AttendX {
 
     calculateAttendanceRate(attendance) {
         const totalDays = Object.keys(attendance).length;
-        if (totalDays === 0) return 0;
-        const presentDays = Object.values(attendance).filter(Boolean).length;
+        if (totalDays === 0) return 0; // FIXED: Return 0% for new students with no records
+        
+        // Calculate total days the student was marked present (true)
+        const presentDays = Object.values(attendance).filter(value => value === true).length;
+        
+        // Calculate attendance rate based on days with records only
         return Math.round((presentDays / totalDays) * 100);
     }
 
