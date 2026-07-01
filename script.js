@@ -1122,10 +1122,15 @@ class AttendX {
                 }
             });
             
-            // Calculate rate based on ACTUAL records only (not counting absent as records)
-            const totalRecords = Object.keys(student.attendance).length;
-            const presentRecords = Object.values(student.attendance).filter(value => value === true).length;
-            const rate = totalRecords === 0 ? 0 : Math.round((presentRecords / totalRecords) * 100);
+            // Calculate rate based on ALL course dates (including missing ones as Absent)
+            const totalCourseDays = sortedDates.length;
+            let presentCount = 0;
+            sortedDates.forEach(date => {
+                if (student.attendance[date] === true) {
+                    presentCount++;
+                }
+            });
+            const rate = totalCourseDays === 0 ? 0 : Math.round((presentCount / totalCourseDays) * 100);
             row.push(rate + '%');
             
             csv += row.join(',') + '\n';
@@ -1182,15 +1187,34 @@ class AttendX {
         });
     }
 
+    // ===== UPDATED: Calculate attendance rate based on ALL course dates =====
     calculateAttendanceRate(attendance) {
-        const totalDays = Object.keys(attendance).length;
-        if (totalDays === 0) return 0; // FIXED: Return 0% for new students with no records
+        // Get all dates from ALL students in the course
+        const allStudents = this.courses[this.currentCourse].students;
+        const allDates = new Set();
         
-        // Calculate total days the student was marked present (true)
-        const presentDays = Object.values(attendance).filter(value => value === true).length;
+        // Collect all dates from every student's attendance
+        Object.values(allStudents).forEach(student => {
+            Object.keys(student.attendance).forEach(date => {
+                allDates.add(date);
+            });
+        });
         
-        // Calculate attendance rate based on days with records only
-        return Math.round((presentDays / totalDays) * 100);
+        const totalCourseDays = allDates.size;
+        
+        // If no dates exist in the course yet, return 0%
+        if (totalCourseDays === 0) return 0;
+        
+        // Count how many of those dates the student was present
+        let presentCount = 0;
+        allDates.forEach(date => {
+            if (attendance[date] === true) {
+                presentCount++;
+            }
+        });
+        
+        // Calculate rate based on total course days
+        return Math.round((presentCount / totalCourseDays) * 100);
     }
 
     loadFromStorage(key) {
