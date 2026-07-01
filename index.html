@@ -8,6 +8,8 @@
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SheetJS for Excel parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -18,6 +20,9 @@
             </button>
             <h1 class="course-title" id="courseTitle">Select Course</h1>
             <div class="header-actions">
+                <button class="icon-btn" id="aboutBtn" title="About">
+                    <i class="fas fa-info-circle"></i>
+                </button>
                 <button class="icon-btn" id="exportBtn" title="Export CSV">
                     <i class="fas fa-file-csv"></i>
                 </button>
@@ -41,6 +46,9 @@
             </div>
         </main>
 
+        <!-- Toast Notification -->
+        <div id="toastContainer"></div>
+
         <!-- Side Navigation -->
         <nav class="side-nav" id="sideNav">
             <div class="nav-header">
@@ -59,17 +67,15 @@
                 <button class="btn-secondary" id="addCourseBtn">
                     <i class="fas fa-plus"></i> Add New Course
                 </button>
-
-		<button class="btn-danger" id="deleteCourseBtn" style="display: none;">
-    		<i class="fas fa-trash"></i> Delete Current Course
-		</button>
-
+                <button class="btn-danger" id="deleteCourseBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> Delete Current Course
+                </button>
             </div>
         </nav>
 
         <!-- Update Attendance Modal -->
         <div class="modal" id="updateModal">
-            <div class="modal-content">
+            <div class="modal-content modal-large">
                 <div class="modal-header">
                     <h3>Update Attendance</h3>
                     <button class="close-btn" id="closeUpdateModal">
@@ -77,24 +83,51 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="attendance-date">
-                        <label for="attendanceDate">Date:</label>
-                        <input type="date" id="attendanceDate">
+                    <!-- Date Navigation -->
+                    <div class="attendance-date-nav">
+                        <button class="date-nav-btn" id="prevDateBtn" title="Previous day">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="attendance-date">
+                            <label for="attendanceDate">Date:</label>
+                            <input type="date" id="attendanceDate">
+                        </div>
+                        <button class="date-nav-btn" id="nextDateBtn" title="Next day">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="date-nav-btn" id="todayDateBtn" title="Today">
+                            <i class="fas fa-calendar-day"></i>
+                        </button>
                     </div>
 
-<div class="search-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="attendanceSearch" placeholder="Search students...">
-                    <button class="clear-search" id="clearAttendanceSearch" style="display: none;">
-                        <i class="fas fa-times"></i>
-                    </button>
-</div>
-            </div>
-            
-            <div class="attendance-list" id="attendanceList"></div>
+                    <!-- Upload Students -->
+                    <div class="upload-section">
+                        <h4>Upload Students</h4>
+                        <div class="upload-area">
+                            <input type="file" id="studentUpload" accept=".csv,.xlsx,.xls">
+                            <label for="studentUpload" class="upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Upload CSV or Excel</span>
+                            </label>
+                            <span class="upload-hint">(Name column: "Name" or "Student Name")</span>
+                        </div>
+                    </div>
 
+                    <!-- Search -->
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="attendanceSearch" placeholder="Search students...">
+                            <button class="clear-search" id="clearAttendanceSearch" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendance List -->
                     <div class="attendance-list" id="attendanceList"></div>
+
+                    <!-- Student Management -->
                     <div class="student-management">
                         <h4>Manage Students</h4>
                         <div class="add-student">
@@ -107,6 +140,85 @@
                 <div class="modal-footer">
                     <button class="btn-secondary" id="cancelUpdate">Cancel</button>
                     <button class="btn-primary" id="saveAttendance">Save Attendance</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Attendance Records Modal -->
+        <div class="modal" id="editRecordsModal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h3>Edit Attendance Records</h3>
+                    <button class="close-btn" id="closeEditRecordsModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="edit-records-controls">
+                        <div class="form-group">
+                            <label for="editStudentSelect">Select Student:</label>
+                            <select id="editStudentSelect"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDateSelect">Select Date:</label>
+                            <input type="date" id="editDateSelect">
+                        </div>
+                    </div>
+                    <div class="edit-records-content" id="editRecordsContent">
+                        <p class="edit-instruction">Select a student and date to edit attendance</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="cancelEditRecords">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Modal -->
+        <div class="modal" id="aboutModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>About AttendX</h3>
+                    <button class="close-btn" id="closeAboutModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body about-content">
+                    <div class="about-section">
+                        <h4><i class="fas fa-rocket"></i> Getting Started</h4>
+                        <ol>
+                            <li><strong>Create a Course:</strong> Click the menu button (☰) → "Add New Course"</li>
+                            <li><strong>Add Students:</strong> Click the pen icon (✏️) → Add students manually or upload CSV/Excel</li>
+                            <li><strong>Mark Attendance:</strong> Select date → Check present students → Save</li>
+                        </ol>
+                    </div>
+                    <div class="about-section">
+                        <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+                        <ul class="shortcuts-list">
+                            <li><kbd>Ctrl</kbd> + <kbd>U</kbd> Open Update Attendance</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>E</kbd> Export CSV</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>S</kbd> Open Settings</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>F</kbd> Focus Search (in update modal)</li>
+                            <li><kbd>Esc</kbd> Close any modal</li>
+                            <li><kbd>←</kbd> <kbd>→</kbd> Navigate dates (in update modal)</li>
+                        </ul>
+                    </div>
+                    <div class="about-section">
+                        <h4><i class="fas fa-lightbulb"></i> Tips</h4>
+                        <ul>
+                            <li>Attendance for a date can only be saved once to prevent duplicates</li>
+                            <li>You can edit existing records by clicking the edit icon next to any attendance entry</li>
+                            <li>Dark mode is available in Settings for night use</li>
+                            <li>Install as PWA for offline access (look for install prompt)</li>
+                        </ul>
+                    </div>
+                    <div class="about-section">
+                        <h4><i class="fas fa-heart"></i> Version</h4>
+                        <p>AttendX v2.0 - Built with ❤️ for educators</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-primary" id="closeAboutBtn">Got It!</button>
                 </div>
             </div>
         </div>
@@ -128,6 +240,11 @@
                             <option value="dark">Dark Mode</option>
                             <option value="auto">Auto</option>
                         </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="showAttendanceHistory"> Show attendance history on student cards
+                        </label>
                     </div>
                 </div>
                 <div class="modal-footer">
